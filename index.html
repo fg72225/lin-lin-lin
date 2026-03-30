@@ -2,7 +2,8 @@
 <html lang="zh-TW" style="--text-color: #f1eaea;"><head>
     <meta charset="UTF-8">
     <meta name="referrer" content="no-referrer">
-    <title>CyberData Dashboard V11.8 - Fix Initial Layout</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CyberData Dashboard V11.8 - Final Fix</title>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <style>
         :root {
@@ -30,7 +31,6 @@
         
         .main-layout { display: flex; gap: 15px; flex-grow: 1; overflow: hidden; position: relative; }
         
-        /* 核心佈局修正 */
         .charts-container { 
             display: grid; align-content: start; gap: 15px; flex-grow: 1; overflow-y: auto; 
             padding-right: 5px; scrollbar-width: thin; scrollbar-color: var(--main-cyan) #000; 
@@ -41,17 +41,23 @@
         
         .project-column { display: flex; flex-direction: column; gap: 15px; min-width: 0; }
         
-        /* 確保 Panel 具備彈性且不溢出 */
         .cyber-panel { 
             background: var(--panel-bg); border: 1px solid rgba(0, 242, 254, 0.3); border-radius: 4px; 
             position: relative; padding: 15px; display: flex; flex-direction: column; box-sizing: border-box; 
-            min-height: 0; flex: 1;
+            min-height: 0; flex: 1; 
         } 
-        .chart-render-box { width: 100%; flex-grow: 1; min-height: 0; }
+        
+        .chart-render-box { width: 100%; flex-grow: 1; min-height: 250px; }
 
+        /* 保留單圖修復：強制撐滿高度 */
         .layout-1 { grid-template-columns: 1fr; }
         .layout-1 .project-column { height: auto; scroll-snap-align: none; }
-        .layout-1 .cyber-panel { height: calc(100vh - 120px); scroll-snap-align: start; scroll-snap-stop: always; }
+        .layout-1 .cyber-panel { 
+            flex: none !important; 
+            height: calc(100vh - 120px) !important; 
+            min-height: 400px;
+            scroll-snap-align: start; scroll-snap-stop: always; 
+        }
 
         .layout-2 { grid-template-columns: 1fr; }
         .layout-4 { grid-template-columns: repeat(2, 1fr); }
@@ -67,8 +73,16 @@
         .marquee-inner { position: absolute; white-space: nowrap; animation: marquee var(--marquee-speed) linear infinite; color: var(--marquee-color); font-size: 18px; line-height: 35px; font-weight: bold; text-shadow: 0 0 8px var(--marquee-color); }
         @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
-        .data-center { display: flex; flex-direction: column; height: 100%; width: 550px; transition: all 0.3s ease; flex-shrink: 0; position: relative; }
-        .data-center.collapsed { width: 40px !important; }
+        /* ======== 最終關鍵修復：強制鎖死數據中心寬度，絕對不准縮水擠壓 ======== */
+        .data-center { 
+            display: flex; flex-direction: column; height: 100%; transition: all 0.3s ease; position: relative; 
+            width: 550px; 
+            flex: 0 0 550px !important; /* 蓋掉 .cyber-panel 的 flex: 1，防止被壓扁 */
+        }
+        .data-center.collapsed { 
+            width: 40px !important; 
+            flex: 0 0 40px !important; 
+        }
         .data-center.collapsed .scroll-area, .data-center.collapsed .panel-header-text { display: none; }
         .collapse-btn { position: absolute; left: -25px; top: 50%; transform: translateY(-50%); background: var(--panel-bg); border: 1px solid var(--main-cyan); color: var(--main-cyan); cursor: pointer; width: 25px; height: 120px; display: flex; align-items: center; justify-content: center; font-size: 12px; writing-mode: vertical-lr; z-index: 100; border-radius: 4px 0 0 4px; }
 
@@ -76,11 +90,41 @@
         .proj-section-title { background: linear-gradient(90deg, rgba(0, 242, 254, 0.3), transparent); color: var(--main-cyan); padding: 8px 15px; font-weight: bold; font-size: 18px; margin: 15px 0 10px 0; border-left: 5px solid var(--main-cyan); }
         .data-row { background: rgba(255,255,255,0.02); margin-bottom: 20px; border: 1px solid rgba(0, 242, 254, 0.2); border-radius: 8px; overflow: hidden; width: 100%; }
         .row-header-title { background: rgba(0, 242, 254, 0.15); padding: 8px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--main-cyan); }
-        .date-input-fixed { font-size: 18px; font-weight: bold; color: var(--main-cyan); background: transparent; border: 1px solid rgba(0, 242, 254, 0.5); padding: 5px; color-scheme: dark; width: 160px; }
-        .data-content-grid-fixed { padding: 15px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; width: 100%; box-sizing: border-box; }
-        .input-group-stable { display: flex; align-items: center; width: 100%; background: rgba(0,0,0,0.6); border: 1px solid #444; border-radius: 3px; overflow: hidden; height: 34px; }
-        .num-input-stable { flex: 1; text-align: right; font-size: 16px; color: var(--text-color); background: transparent; border: none; padding: 0 5px; width: 60%; min-width: 0; outline: none; }
-        .unit-input-stable { width: 35px; font-size: 11px; color: #888; text-align: left; background: rgba(255,255,255,0.05); border: none; height: 100%; padding-left: 3px; outline: none; }
+        .date-input-fixed { font-size: 18px; font-weight: bold; color: var(--main-cyan); background: transparent; border: 1px solid rgba(0, 242, 254, 0.5); padding: 5px; color-scheme: dark; width: 160px; box-sizing: border-box; }
+        
+        /* 還原乾淨的三欄網格 */
+        .data-content-grid-fixed { 
+            padding: 15px; 
+            display: grid; 
+            grid-template-columns: 1fr 1fr 1fr; 
+            gap: 10px; 
+            width: 100%; 
+            box-sizing: border-box; 
+        }
+        
+        /* 輸入框佈局優化：靠右對齊，確保數字清晰可見 */
+        .input-group-stable { 
+            display: flex; align-items: center; width: 100%; background: rgba(0,0,0,0.6); 
+            border: 1px solid #444; border-radius: 4px; height: 36px; box-sizing: border-box; 
+        }
+        .num-input-stable { 
+            flex: 1 1 auto; width: 100%; min-width: 0; 
+            text-align: right; padding-right: 5px; /* 改為靠右對齊，貼合單位 */
+            font-size: 16px; font-weight: bold;
+            color: #ffffff !important; -webkit-text-fill-color: #ffffff !important;
+            background: transparent; border: none; outline: none; box-sizing: border-box; 
+        }
+        .unit-input-stable { 
+            flex: 0 0 35px; width: 35px; height: 100%; text-align: center; 
+            font-size: 12px; color: #00f2fe !important; -webkit-text-fill-color: #00f2fe !important;
+            background: rgba(255,255,255,0.1); border: none; padding: 0; outline: none; box-sizing: border-box; 
+        }
+
+        /* 系統觀看模式文字顏色強制覆蓋 */
+        input:disabled { opacity: 1 !important; -webkit-text-fill-color: currentColor !important; color: inherit !important; }
+        .num-input-stable:disabled { -webkit-text-fill-color: #ffffff !important; color: #ffffff !important; }
+        .unit-input-stable:disabled { -webkit-text-fill-color: #00f2fe !important; color: #00f2fe !important; }
+        .date-input-fixed:disabled, .data-content-grid-fixed > div > input:disabled { -webkit-text-fill-color: var(--main-cyan) !important; color: var(--main-cyan) !important; }
         
         .top-btn { background: transparent; border: 2px solid var(--main-cyan); color: var(--main-cyan); padding: 6px 14px; cursor: pointer; font-family: var(--font-family); font-size: 16px; font-weight: bold; transition: 0.3s; white-space: nowrap; }
         #login-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95); display: none; justify-content: center; align-items: center; z-index: 9999; }
@@ -93,6 +137,18 @@
         .edit-mode .edit-only { display: flex; }
         .view-mode .view-only { display: flex; }
         .edit-mode .view-only { display: none; }
+
+        /* 行動裝置/窄螢幕安全防護 */
+        @media screen and (max-width: 1024px) {
+            body { height: auto; overflow-x: hidden; overflow-y: auto; }
+            .main-layout { flex-direction: column; height: auto; overflow: visible; }
+            .data-center { width: 100% !important; flex: none !important; height: auto !important; margin-top: 10px; }
+            .scroll-area { height: auto !important; max-height: none; }
+            .top-nav { flex-direction: column; align-items: center; gap: 15px; }
+            .top-nav > div { justify-content: center; }
+            .collapse-btn { display: none; }
+            .row-header-title { flex-wrap: wrap; gap: 10px; }
+        }
     </style>
 </head>
 <body class="view-mode">
@@ -176,7 +232,6 @@
 
         window.onload = () => {
             loadFromStorage(); applyVisuals(); updateSelector(); 
-            // 修正：初始化圖表時稍微延遲，確保 DOM 高度已穩定
             setTimeout(() => {
                 initCharts();
                 renderList();
@@ -211,7 +266,6 @@
             document.getElementById(`btn-layout-${mode}`).style.borderColor = 'var(--main-pink)';
             document.getElementById(`btn-layout-${mode}`).style.color = 'var(--main-pink)';
             
-            // 重要：切換佈局後立即執行 resize
             setTimeout(() => {
                 chartInstances.forEach(inst => { inst.bc.resize(); inst.lc.resize(); });
             }, 100);
@@ -251,34 +305,15 @@
 
                 const common = { 
                     backgroundColor: 'transparent', 
-                    grid: { 
-                        top: 55, 
-                        bottom: 90, // 核心修正：加大底部留白空間，防止 X 軸被推到容器外
-                        left: '5%', 
-                        right: '5%', 
-                        containLabel: true 
-                    },
+                    grid: { top: 55, bottom: 90, left: '5%', right: '5%', containLabel: true },
                     legend: { show: true, top: 0, textStyle: { color: aCol, fontSize: aSize } },
                     tooltip: { trigger: 'axis' },
                     dataZoom: [
-                        { 
-                            type: 'slider', 
-                            show: true, 
-                            xAxisIndex: [0], 
-                            bottom: 10, 
-                            height: 20, 
-                            borderColor: 'rgba(0, 242, 254, 0.4)', 
-                            fillerColor: 'rgba(0, 242, 254, 0.2)', 
-                            handleStyle: { color: '#00f2fe' }, 
-                            textStyle: { color: aCol } 
-                        },
+                        { type: 'slider', show: true, xAxisIndex: [0], bottom: 10, height: 20, borderColor: 'rgba(0, 242, 254, 0.4)', fillerColor: 'rgba(0, 242, 254, 0.2)', handleStyle: { color: '#00f2fe' }, textStyle: { color: aCol } },
                         { type: 'inside', xAxisIndex: [0] }
                     ]
                 };
-                const xAxisOpt = { 
-                    data: xData, 
-                    axisLabel: { color: aCol, fontSize: aSize, rotate: 30, interval: 0 } 
-                };
+                const xAxisOpt = { data: xData, axisLabel: { color: aCol, fontSize: aSize, rotate: 30, interval: 0 } };
 
                 bc.setOption({ ...common, xAxis: xAxisOpt, yAxis: { name:unit, scale:true, boundaryGap: ['0%', '20%'], axisLabel:{color:aCol, fontSize:aSize} },
                     series: proj.labels.map((name, i) => ({
@@ -307,18 +342,14 @@
                 chartInstances.push({bc, lc, pid});
             });
 
-            // 修正關鍵：初始化完畢後強制再觸發一次 resize
-            setTimeout(() => {
-                chartInstances.forEach(inst => { inst.bc.resize(); inst.lc.resize(); });
-            }, 50);
+            setTimeout(() => { chartInstances.forEach(inst => { inst.bc.resize(); inst.lc.resize(); }); }, 50);
         }
 
-        // 以下邏輯完全保留原始狀態
         function handleFileUpload(pid, idx, input) { const file = input.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { const base64 = e.target.result; projectStore[pid].data[idx].fileData = base64; projectStore[pid].data[idx].fileType = file.type; try { saveToStorage(); initCharts(); renderList(); } catch(err) { alert("⚠️ 存檔失敗！檔案太大。"); projectStore[pid].data[idx].fileData = null; projectStore[pid].data[idx].fileType = null; input.value = ''; } }; reader.readAsDataURL(file); }
         function removeFile(pid, idx) { if(confirm('確定要刪除此附件檔案嗎？')) { projectStore[pid].data[idx].fileData = null; projectStore[pid].data[idx].fileType = null; saveToStorage(); initCharts(); renderList(); } }
         function showFileViewer(base64Data, type) { const content = document.getElementById('file-viewer-content'); content.innerHTML = ''; if (type === 'application/pdf') { content.innerHTML = `<iframe src="${base64Data}" style="width:100%; height:100%; border:none;"></iframe>`; } else if (type.startsWith('image/')) { content.innerHTML = `<img src="${base64Data}" style="max-width:100%; max-height:100%; object-fit:contain;">`; } document.getElementById('file-viewer-overlay').style.display = 'flex'; }
         function closeFileViewer() { document.getElementById('file-viewer-overlay').style.display = 'none'; document.getElementById('file-viewer-content').innerHTML = ''; }
-        function renderList() { const container = document.getElementById('data-container'); container.innerHTML = ''; selectedProjects.forEach(pid => { const proj = projectStore[pid]; const section = document.createElement('div'); section.innerHTML = `<div class="proj-section-title"><span>專案：</span><span class="editable-proj-name" contenteditable="${isEditable}" oninput="projectStore['${pid}'].name=this.innerText">${proj.name}</span></div><div class="rows-box" data-pid="${pid}"></div>`; const rowsBox = section.querySelector('.rows-box'); proj.data.forEach((d, i) => { const row = document.createElement('div'); row.className = 'data-row'; row.draggable = isEditable; row.dataset.idx = i; const actionButtons = isEditable ? `<div style="display:flex; gap:10px; align-items:center;"><label style="cursor:pointer; color:${d.fileData ? '#4caf50' : 'var(--main-cyan)'}; border:1px solid; padding:2px 6px; border-radius:3px;">${d.fileData ? '更換附件' : '+ 加入附件'}<input type="file" style="display:none;" accept=".pdf, image/*" onchange="handleFileUpload('${pid}', ${i}, this)"></label>${d.fileData ? `<span onclick="removeFile('${pid}', ${i})" style="color:#ff9800; cursor:pointer;">[刪附件]</span>` : ''}<span onclick="projectStore['${pid}'].data.splice(${i},1); initCharts(); renderList(); saveToStorage();" style="color:var(--main-pink); cursor:pointer;">[移除月份]</span></div>` : (d.fileData ? `<span style="color:#4caf50; font-size:14px; cursor:pointer;" onclick="showFileViewer('${d.fileData}', '${d.fileType}')">📎 查看附件</span>` : ''); row.innerHTML = `<div class="row-header-title"><input type="date" class="date-input-fixed" value="${d.date}" ${!isEditable?'disabled':''} onchange="projectStore['${pid}'].data[${i}].date=this.value; initCharts(); saveToStorage();">${actionButtons}</div><div class="data-content-grid-fixed">${[0,1,2].map(j => `<div style="text-align:center;"><input style="color:var(--main-cyan); font-weight:bold; background:transparent; border:none; text-align:center; width:100%;" value="${proj.labels[j]}" ${!isEditable?'disabled':''} oninput="projectStore['${pid}'].labels[${j}]=this.value; initCharts(); saveToStorage();"><div class="input-group-stable"><input type="text" class="num-input-stable" value="${formatThousand(d['v'+j])}" ${!isEditable?'disabled':''} onfocus="this.value=this.value.replace(/,/g,'')" onblur="this.value=formatThousand(this.value)" oninput="projectStore['${pid}'].data[${i}]['v'+${j}]=this.value.replace(/,/g,''); initCharts(); saveToStorage();"><input type="text" class="unit-input-stable" value="${d['u'+j]}" ${!isEditable?'disabled':''} oninput="projectStore['${pid}'].data[${i}]['u'+${j}]=this.value; initCharts(); saveToStorage();"></div></div>`).join('')}</div>`; if(isEditable) { row.ondragstart = (e) => { e.dataTransfer.setData('idx', i); row.classList.add('dragging'); }; row.ondragend = () => row.classList.remove('dragging'); row.ondragover = (e) => { e.preventDefault(); const dragging = document.querySelector('.dragging'); if(dragging) rowsBox.insertBefore(dragging, row.nextSibling === dragging ? row : row); }; } rowsBox.appendChild(row); }); rowsBox.ondrop = (e) => { const pid = rowsBox.dataset.pid; const newRows = Array.from(rowsBox.querySelectorAll('.data-row')); projectStore[pid].data = newRows.map(r => projectStore[pid].data[r.dataset.idx]); initCharts(); renderList(); saveToStorage(); }; container.appendChild(section); }); }
+        function renderList() { const container = document.getElementById('data-container'); container.innerHTML = ''; selectedProjects.forEach(pid => { const proj = projectStore[pid]; const section = document.createElement('div'); section.innerHTML = `<div class="proj-section-title"><span>專案：</span><span class="editable-proj-name" contenteditable="${isEditable}" oninput="projectStore['${pid}'].name=this.innerText">${proj.name}</span></div><div class="rows-box" data-pid="${pid}"></div>`; const rowsBox = section.querySelector('.rows-box'); proj.data.forEach((d, i) => { const row = document.createElement('div'); row.className = 'data-row'; row.draggable = isEditable; row.dataset.idx = i; const actionButtons = isEditable ? `<div style="display:flex; gap:10px; align-items:center;"><label style="cursor:pointer; color:${d.fileData ? '#4caf50' : 'var(--main-cyan)'}; border:1px solid; padding:2px 6px; border-radius:3px;">${d.fileData ? '更換附件' : '+ 加入附件'}<input type="file" style="display:none;" accept=".pdf, image/*" onchange="handleFileUpload('${pid}', ${i}, this)"></label>${d.fileData ? `<span onclick="removeFile('${pid}', ${i})" style="color:#ff9800; cursor:pointer;">[刪附件]</span>` : ''}<span onclick="projectStore['${pid}'].data.splice(${i},1); initCharts(); renderList(); saveToStorage();" style="color:var(--main-pink); cursor:pointer;">[移除月份]</span></div>` : (d.fileData ? `<span style="color:#4caf50; font-size:14px; cursor:pointer;" onclick="showFileViewer('${d.fileData}', '${d.fileType}')">📎 查看附件</span>` : ''); row.innerHTML = `<div class="row-header-title"><input type="date" class="date-input-fixed" value="${d.date}" ${!isEditable?'disabled':''} onchange="projectStore['${pid}'].data[${i}].date=this.value; initCharts(); saveToStorage();">${actionButtons}</div><div class="data-content-grid-fixed">${[0,1,2].map(j => `<div style="text-align:center; min-width:0;"><input style="color:var(--main-cyan); font-weight:bold; background:transparent; border:none; text-align:center; width:100%; box-sizing:border-box;" value="${proj.labels[j]}" ${!isEditable?'disabled':''} oninput="projectStore['${pid}'].labels[${j}]=this.value; initCharts(); saveToStorage();"><div class="input-group-stable"><input type="text" class="num-input-stable" value="${formatThousand(d['v'+j])}" ${!isEditable?'disabled':''} onfocus="this.value=this.value.replace(/,/g,'')" onblur="this.value=formatThousand(this.value)" oninput="projectStore['${pid}'].data[${i}]['v'+${j}]=this.value.replace(/,/g,''); initCharts(); saveToStorage();"><input type="text" class="unit-input-stable" value="${d['u'+j]}" ${!isEditable?'disabled':''} oninput="projectStore['${pid}'].data[${i}]['u'+${j}]=this.value; initCharts(); saveToStorage();"></div></div>`).join('')}</div>`; if(isEditable) { row.ondragstart = (e) => { e.dataTransfer.setData('idx', i); row.classList.add('dragging'); }; row.ondragend = () => row.classList.remove('dragging'); row.ondragover = (e) => { e.preventDefault(); const dragging = document.querySelector('.dragging'); if(dragging) rowsBox.insertBefore(dragging, row.nextSibling === dragging ? row : row); }; } rowsBox.appendChild(row); }); rowsBox.ondrop = (e) => { const pid = rowsBox.dataset.pid; const newRows = Array.from(rowsBox.querySelectorAll('.data-row')); projectStore[pid].data = newRows.map(r => projectStore[pid].data[r.dataset.idx]); initCharts(); renderList(); saveToStorage(); }; container.appendChild(section); }); }
         function updateViewTags() { const box = document.getElementById('view-project-tags'); box.innerHTML = ''; selectedProjects.forEach((pid, index) => { const tag = document.createElement('div'); tag.className = 'project-tag'; tag.innerText = projectStore[pid].name; tag.draggable = true; tag.ondragstart = (e) => { e.dataTransfer.setData('t-idx', index); tag.style.opacity = '0.5'; }; tag.ondrop = (e) => { const fromIdx = e.dataTransfer.getData('t-idx'); const moved = selectedProjects.splice(fromIdx, 1)[0]; selectedProjects.splice(index, 0, moved); initCharts(); updateViewTags(); renderList(); saveToStorage(); }; tag.ondragover = (e) => e.preventDefault(); box.appendChild(tag); }); }
         function addNewProject() { const id = 'p' + Date.now(); projectStore[id] = { name: "新大項", labels: ["標籤1", "", ""], data: [{date: new Date().toISOString().split('T')[0], v0:0, v1:0, v2:0, u0:"", u1:"", u2:""}] }; selectedProjects.push(id); updateSelector(); initCharts(); renderList(); updateViewTags(); saveToStorage(); }
         function deleteCurrentProject() { const s = document.getElementById('project-selector'); const ids = Array.from(s.selectedOptions).map(o => o.value); if(ids.length > 0 && confirm("確定刪除？")) { ids.forEach(id => delete projectStore[id]); selectedProjects = selectedProjects.filter(id => !ids.includes(id)); updateSelector(); initCharts(); renderList(); updateViewTags(); saveToStorage(); } }
